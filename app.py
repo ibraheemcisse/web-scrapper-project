@@ -3,7 +3,7 @@ from flask import Flask, render_template
 from pymongo import MongoClient
 import requests
 from bs4 import BeautifulSoup
-from werkzeug.urls import url_quote_plus as url_quote  # Updated import
+from werkzeug.urls import url_quote_plus  # Updated import
 
 app = Flask(__name__)
 

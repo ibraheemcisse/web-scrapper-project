@@ -1,9 +1,8 @@
-# app.py
 from flask import Flask, render_template
 from pymongo import MongoClient
 import requests
 from bs4 import BeautifulSoup
-from werkzeug.urls import url_quote_plus  # Updated import
+from urllib.parse import quote as url_quote
 
 app = Flask(__name__)
 

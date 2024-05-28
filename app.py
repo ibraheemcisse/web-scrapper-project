@@ -9,28 +9,44 @@ app = Flask(__name__)
 # MongoDB setup
 client = MongoClient('mongodb://mongo:27017/')  # 'mongo' is the hostname of the MongoDB container
 db = client['web_scraper_db']
-collection = db['links']
+collection = db['gamestop_data']
 
-# Web scraper function
-def scrape_data():
-    url = 'https://www.gamespot.com/'  # Replace with the URL of the website to scrape
+# Web scraper function for GameStop website
+def scrape_gamestop():
+    url = 'https://www.gamestop.com/'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    links = [link.get('href') for link in soup.find_all('a')]
-    return links
+    games = soup.find_all('div', class_='product-tile')
 
-# Route to scrape and display data
+    game_data = []
+    for game in games:
+        title = game.find('div', class_='title').text.strip()
+        price = game.find('div', class_='price').text.strip()
+        rating = game.find('span', class_='rating').text.strip()
+        description = game.find('div', class_='description').text.strip()
+
+        game_info = {
+            'title': title,
+            'price': price,
+            'rating': rating,
+            'description': description
+        }
+        game_data.append(game_info)
+
+    return game_data
+
+# Route to scrape and display GameStop data
 @app.route('/')
 def index():
     # Scrape data and store in MongoDB
-    links = scrape_data()
-    collection.insert_many([{'link': link} for link in links])
+    games_data = scrape_gamestop()
+    collection.insert_many(games_data)
 
     # Fetch data from MongoDB
-    links_from_db = [doc['link'] for doc in collection.find()]
+    games_from_db = collection.find()
 
     # Render template with scraped data
-    return render_template('index.html', links=links_from_db)
+    return render_template('index.html', games=games_from_db)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -1,6 +1,16 @@
-from urllib.parse import quote
+# app.py
+from flask import Flask, render_template
+from pymongo import MongoClient
 import requests
 from bs4 import BeautifulSoup
+from werkzeug.urls import url_quote_plus as url_quote  # Updated import
+
+app = Flask(__name__)
+
+# MongoDB setup
+client = MongoClient('mongodb://mongo:27017/')  # 'mongo' is the hostname of the MongoDB container
+db = client['web_scraper_db']
+collection = db['gamestop_data']
 
 # Web scraper function for GameStop website
 def scrape_gamestop():
@@ -25,3 +35,19 @@ def scrape_gamestop():
         game_data.append(game_info)
 
     return game_data
+
+# Route to scrape and display GameStop data
+@app.route('/')
+def index():
+    # Scrape data and store in MongoDB
+    games_data = scrape_gamestop()
+    collection.insert_many(games_data)
+
+    # Fetch data from MongoDB
+    games_from_db = collection.find()
+
+    # Render template with scraped data
+    return render_template('index.html', games=games_from_db)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

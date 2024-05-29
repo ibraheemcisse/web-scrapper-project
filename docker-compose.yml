@@ -1,17 +1,8 @@
-# docker-compose.yml
 version: '3'
 
 services:
-  mongo:
-    image: mongo
-    container_name: mongo
-    ports:
-      - "27017:27017"
-
   api:
     build: .
     container_name: api
     ports:
       - "5000:5000"
-    depends_on:
-      - mongo
